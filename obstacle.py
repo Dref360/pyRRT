@@ -4,38 +4,36 @@ import shared
 
 
 class Obstacle(object):
-    def __init__(self, x, y, width, height):
+    def __init__(self, coords, dims):
         # right now we restrict obstacles to rectangles, eventually extend to polygons using triangle fans
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
+        self.coords = coords
+        self.dims = dims
         self.shape = None
 
+    #Only used when in 2D
     def add_to_default_batch(self):
-        """
-        Adds the obstacle as a GL_QUAD, does not allow obstacles less than step size
-        :return:
-        """
-        if self.y < 50:
-            self.height += self.y - 50
-            self.y = 50
-        if self.width < shared.STEP_SIZE or self.height < shared.STEP_SIZE:
-            self.delete()
-            return
-        self.shape = shared.batch.add(4, gl.GL_QUADS, None,
-                                      ('v2f', (self.x, self.y,
-                                               self.x + self.width, self.y,
-                                               self.x + self.width, self.y + self.height,
-                                               self.x, self.y + self.height)))
+        if shared.dimensions == 2:
+            if self.coords[1] < 50:
+                self.dims[1] += self.coords[1] - 50
+                self.coords[1] = 50
+            if self.dims[0] < shared.STEP_SIZE or self.dims[1] < shared.STEP_SIZE:
+                self.delete()
+                return
+            self.shape = shared.batch.add(4, gl.GL_QUADS, None,
+                                          ('v2f', (self.coords[0], self.coords[1],
+                                                   self.coords[0] + self.dims[0], self.coords[1],
+                                                   self.coords[0] + self.dims[0], self.coords[1] + self.dims[1],
+                                                   self.coords[0], self.coords[1] + self.dims[1])))
 
-    def collides_with(self, x, y):
+    def collides_with(self, point):
         """
-        :param x: x position of other point
-        :param y: y position of other point
+        :param point: List of coordinates for 2-4 dimensions
         :return: Boolean True if a collision occurs
         """
-        return self.x + self.width > x > self.x and self.y + self.height > y > self.y
+        collide = True
+        for i, x in enumerate(self.coords):
+            collide = collide and x + self.dims[i] > point[i] > x
+        return  collide
 
     def delete(self):
         """

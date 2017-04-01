@@ -133,30 +133,49 @@ def setup(is_set=(False, False)):
     if not is_set[0]:
         root = None
         while root is None:
-            root = random.random() * shared.window_width, random.random() * (shared.window_height - 50) + 50
-            for obs in shared.obstacles:
-                if obs.collides_with(root[0], root[1]):
-                    root = None
-                    break
-        root = node.Node(root[0], root[1], None, "root")
+            if shared.dimensions == 2:
+                root = random.random() * shared.window_width, random.random() * (shared.window_height - 50) + 50
+                for obs in shared.obstacles:
+                    if obs.collides_with(root):
+                        root = None
+                        break
+            else:
+                root = []
+                for i in range(shared.dimensions):
+                    root.append(random.random() * shared.x_domain[1])
+                for obs in shared.obstacles:
+                    if obs.collides_with(root):
+                        root = None
+                        break
+        root = node.Node(root, None, "root")
     else:
-        root = node.Node(root.x, root.y, None, "root")
+        root = node.Node(root.coords, None, "root")
     if not is_set[1]:
         goal = None
         while goal is None:
-            goal = random.random() * shared.window_width, random.random() * (shared.window_height - 50) + 50
-            for obs in shared.obstacles:
-                if obs.collides_with(goal[0], goal[1]):
-                    goal = None
-                    break
-        goal = node.Node(goal[0], goal[1], None, "goal")
+            if shared.dimensions == 2:
+                goal = [random.random() * shared.window_width, random.random() * (shared.window_height - 50) + 50]
+                for obs in shared.obstacles:
+                    if obs.collides_with(goal):
+                        goal = None
+                        break
+            else:
+                goal = []
+                for i in range(shared.dimensions):
+                    goal.append(random.random() * shared.x_domain[1])
+                for obs in shared.obstacles:
+                    if obs.collides_with(goal):
+                        goal = None
+                        break
+        goal = node.Node(goal, None, "goal")
     else:
-        goal = node.Node(shared.goal.x, shared.goal.y, None, "goal")
+        goal = node.Node(shared.goal.coords, None, "goal")
     shared.nodes.append(root)
     shared.goal = goal
     shared.root_path = []
     shared.root_path_length = sys.maxsize
-
+    print(root)
+    print(goal)
 
 def main(set_nodes):
     """
@@ -219,10 +238,10 @@ def main(set_nodes):
         :return:
         """
         if button == mouse.LEFT:
-            shared.obstacles.append(obstacle.Obstacle(x, y, 0, 0))
+            shared.obstacles.append(obstacle.Obstacle([x, y], [0, 0]))
         if button == mouse.RIGHT:
             for obs in shared.obstacles:
-                if obs.collides_with(x, y):
+                if obs.collides_with([x, y]):
                     obs.delete()
 
     # noinspection PyUnusedLocal
@@ -237,17 +256,17 @@ def main(set_nodes):
         :return:
         """
         if button == mouse.LEFT:
-            dx = x - shared.obstacles[-1].x
-            dy = y - shared.obstacles[-1].y
-            shared.obstacles[-1].x = min(x, shared.obstacles[-1].x)
-            shared.obstacles[-1].y = min(y, shared.obstacles[-1].y)
-            shared.obstacles[-1].width = abs(dx)
-            shared.obstacles[-1].height = abs(dy)
+            dx = x - shared.obstacles[-1].coords[0]
+            dy = y - shared.obstacles[-1].coords[1]
+            shared.obstacles[-1].coords[0] = min(x, shared.obstacles[-1].coords[0])
+            shared.obstacles[-1].coords[1] = min(y, shared.obstacles[-1].coords[1])
+            shared.obstacles[-1].dims[0] = abs(dx)
+            shared.obstacles[-1].dims[1] = abs(dy)
             if shared.obstacles:
                 for this_node in shared.nodes:
-                    if shared.obstacles[-1].collides_with(this_node.x, this_node.y):
+                    if shared.obstacles[-1].collides_with(this_node.coords):
                         shared.obstacles[-1].delete()
-                if shared.obstacles[-1].collides_with(shared.goal.x, shared.goal.y):
+                if shared.obstacles[-1].collides_with(shared.goal.coords):
                     shared.obstacles[-1].delete()
                 else:
                     shared.obstacles[-1].add_to_default_batch()
@@ -271,7 +290,15 @@ if __name__ == "__main__":  # This happens if you run
                         help="use this file to set the environment up")
     parser.add_argument("-f", "--fullscreen",
                         help="run fullscreen on last screen available", action="store_true")
+    parser.add_argument("-d", "--dimensions",
+                        help="how many dimensions does the algorithm have to account for", action="store_true")
+
     args = parser.parse_args()
+
+    if args.dimensions:
+        shared.dimensions = 3
+        shared.x_domain = 0, 100
+
     shared.continual = args.screensaver
     if shared.continual:
         shared.base_max = sys.maxsize

@@ -31,8 +31,9 @@ def step():
     updated = updated or goal_path_resolve(shared.nodes[-1])
     if updated:
         diameter = shared.root_path_length
-        center = ((shared.root_path[0].x + shared.root_path[-1].x) / 2,
-                  (shared.root_path[0].y + shared.root_path[-1].y) / 2)
+        center = []
+        for i in range(shared.dimensions):
+            center[i] = shared.root_path[0].coords[i] + shared.root_path[-1].coords[i] / 2
         if shared.region:
             shared.region.remove_from_batch()
         shared.region = ellipse.Ellipse(center[0], center[1], diameter)
@@ -44,18 +45,29 @@ def sample():
     sampling method for constricted RRT* paper gives more details.
     """
     if shared.root_path_length < sys.maxsize:
-        # We make a circle
-        center = ((shared.root_path[0].x + shared.root_path[-1].x) / 2,
-                  (shared.root_path[0].y + shared.root_path[-1].y) / 2)
-        r = shared.root_path_length / 2
-        while True:
-            x, y = sample_unit_ball()
-            x *= r
-            y *= r
-            x += center[0]
-            y += center[1]
-            if shared.x_domain[1] > x > shared.x_domain[0] and shared.y_domain[1] > y > shared.y_domain[0]:
-                return x, y
+        if shared.dimensions == 2:
+            # We make a circle
+            center = ((shared.root_path[0].coords[0] + shared.root_path[-1].coords[0]) / 2,
+                      (shared.root_path[0].coords[1] + shared.root_path[-1].coords[1]) / 2)
+            r = shared.root_path_length / 2
+            while True:
+                coords = sample_unit_ball()
+                coords *= r
+                coords += center
+                if shared.x_domain[1] > coords[0] > shared.x_domain[0] and shared.y_domain[1] > coords[1] > shared.y_domain[0]:
+                    return coords
+        elif shared.dimensions == 3:
+            # We make a sphere
+            center = ((shared.root_path[0].coords[0] + shared.root_path[-1].coords[0]) / 2,
+                      (shared.root_path[0].coords[1] + shared.root_path[-1].coords[1]) / 2,
+                      (shared.root_path[0].coords[2] + shared.root_path[-1].coords[2]) / 2)
+            r = shared.root_path_length / 2
+            while True:
+                coords = sample_unit_ball()
+                coords *= r
+                coords += center
+                if shared.x_domain[1] > coords[0] > shared.x_domain[0] and shared.x_domain[1] > coords[1] > shared.x_domain[0] and shared.x_domain[1] > coords[2] > shared.x_domain[0]:
+                    return coords
     else:
         return sample_free()
 

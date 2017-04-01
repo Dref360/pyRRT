@@ -32,3 +32,4 @@ continual = False
 outfile_base = "levels/level"
 outfile_ext = ".json"
 collision_divisions = 10
+dimensions = 2

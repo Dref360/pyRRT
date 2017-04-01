@@ -24,23 +24,25 @@ def step():
         for x_near in X_near:
             if obstacle_free(x_near, x_new) and (x_new_node.cost + x_near.dist_to(x_new) < x_near.cost):
                 x_near.change_parent(x_new_node)
-        # Here I check for goal regions and draw the ellipse
-        updated = False
-        if shared.root_path:
-            updated = goal_path_resolve(shared.root_path[0])
-        updated = updated or goal_path_resolve(shared.nodes[-1])
-        if updated:
-            major = shared.root_path_length
-            minor = math.sqrt(
-                major ** 2 - shared.root_path[0].dist_to((shared.root_path[-1].x, shared.root_path[-1].y)) ** 2)
-            angle = math.atan2(shared.root_path[0].y - shared.root_path[-1].y,
-                               shared.root_path[0].x - shared.root_path[-1].x)
-            center = ((shared.root_path[0].x + shared.root_path[-1].x) / 2,
-                      (shared.root_path[0].y + shared.root_path[-1].y) / 2)
-            if shared.region:
-                shared.region.remove_from_batch()
-            shared.region = ellipse.Ellipse(center[0], center[1], major, minor, angle)
-            shared.region.add_to_batch()
+
+        if shared.dimensions == 2:
+            # Here I check for goal regions and draw the ellipse
+            updated = False
+            if shared.root_path:
+                updated = goal_path_resolve(shared.root_path[0])
+            updated = updated or goal_path_resolve(shared.nodes[-1])
+            if updated:
+                major = shared.root_path_length
+                minor = math.sqrt(
+                    major ** 2 - shared.root_path[0].dist_to(shared.root_path[-1].coords) ** 2)
+                angle = math.atan2(shared.root_path[0].coords[1] - shared.root_path[-1].coords[1],
+                                   shared.root_path[0].coords[0] - shared.root_path[-1].coords[0])
+                center = ((shared.root_path[0].coords[0] + shared.root_path[-1].coords[0]) / 2,
+                          (shared.root_path[0].coords[1] + shared.root_path[-1].coords[1]) / 2)
+                if shared.region:
+                    shared.region.remove_from_batch()
+                shared.region = ellipse.Ellipse(center[0], center[1], major, minor, angle)
+                shared.region.add_to_batch()
 
 
 def sample():
@@ -51,12 +53,12 @@ def sample():
         # We make a circle
         major = shared.root_path_length
         minor = math.sqrt(
-            major ** 2 - shared.root_path[0].dist_to((shared.root_path[-1].x, shared.root_path[-1].y)) ** 2)
-        angle = math.atan2(shared.root_path[0].y - shared.root_path[-1].y,
-                           shared.root_path[0].x - shared.root_path[-1].x)
+            major ** 2 - shared.root_path[0].dist_to((shared.root_path[-1].coords[0], shared.root_path[-1].coords[1])) ** 2)
+        angle = math.atan2(shared.root_path[0].coords[1] - shared.root_path[-1].coords[1],
+                           shared.root_path[0].coords[0] - shared.root_path[-1].coords[0])
 
-        center = ((shared.root_path[0].x + shared.root_path[-1].x) / 2,
-                  (shared.root_path[0].y + shared.root_path[-1].y) / 2)
+        center = ((shared.root_path[0].coords[0] + shared.root_path[-1].coords[0]) / 2,
+                  (shared.root_path[0].coords[1] + shared.root_path[-1].coords[1]) / 2)
         r = shared.root_path_length / 2
         while True:
 
