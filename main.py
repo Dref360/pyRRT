@@ -2,6 +2,7 @@
 __author__ = 'Murray Tannock'
 import sys
 import random
+import time
 from itertools import cycle
 
 import pyglet
@@ -17,13 +18,18 @@ import rrtstarconstricted
 import rrtstarinformed
 import shared
 import jsonify
+import json
+import glob
+
 
 
 methods = [rrt.step, rrtstar.step, rrtstarconstricted.step, rrtstarinformed.step]
 meth_cycle = cycle(methods)
 
 fps_display = pyglet.clock.ClockDisplay()
-
+autoMode = False
+outputFile = ""
+inputMap = ""
 
 def method_cycle():
     """
@@ -32,6 +38,21 @@ def method_cycle():
     """
     return next(meth_cycle)
 
+
+class Timer:
+    times = []
+    
+    def run(self):
+        debut = time.time()
+        shared.method()
+        self.times.append(time.time() - debut)
+    def stop(self):
+        with open(outputFile, 'w') as f:
+            f.write(json.dumps({'algo':shared.method.__name__, 'map':inputMap, 'time':self.times}))
+        exit()
+        
+        
+timer = Timer()
 
 # noinspection PyUnusedLocal
 def update(dt):
@@ -43,10 +64,12 @@ def update(dt):
     path_cost = None
     if shared.running:
         if shared.node_count < shared.max_nodes:
-            shared.method()
+            timer.run()
+            
     gl.glClear(gl.GL_COLOR_BUFFER_BIT)
     gl.glLoadIdentity()
     if shared.root_path_length != sys.maxsize:
+        timer.stop()
         path_cost = pyglet.text.Label("Path Cost: %6.2f" % shared.root_path_length,
                                       font_size=18,
                                       x=shared.window_width // 3, y=24,
@@ -156,6 +179,7 @@ def setup(is_set=(False, False)):
     shared.goal = goal
     shared.root_path = []
     shared.root_path_length = sys.maxsize
+    shared.running = autoMode
 
 
 def main(set_nodes):
@@ -168,6 +192,9 @@ def main(set_nodes):
     window.set_fullscreen(shared.fullscreen, shared.screen)
     window.set_location(shared.screen.x, shared.screen.height - shared.default_screen.height)
     window.set_caption("Rapidly-exploring Random Trees - RRT - Stopped")
+    
+    for filename in glob.iglob('data/*.json'):
+        json.parse(open(filename))
 
     # noinspection PyUnusedLocal
     @window.event
@@ -271,6 +298,10 @@ if __name__ == "__main__":  # This happens if you run
                         help="use this file to set the environment up")
     parser.add_argument("-f", "--fullscreen",
                         help="run fullscreen on last screen available", action="store_true")
+    parser.add_argument("-o", "--output",
+                        help="the name of the output file, for the test data")
+    parser.add_argument("-a", "--algorithm",
+                        help="0=rrt, 1=rrtstar, 2=rrtstarconstricted, 3=rrtstarinformed") 
     args = parser.parse_args()
     shared.continual = args.screensaver
     if shared.continual:
@@ -284,4 +315,11 @@ if __name__ == "__main__":  # This happens if you run
         shared.y_range = shared.y_domain[1] - shared.y_domain[0]
     if args.infile:
         nodes_set = jsonify.parse_infile(args.infile)
+        inputMap = args.infile
+    if args.algorithm:
+        shared.method = methods[int(args.algorithm)]
+        autoMode = True
+    if args.output:
+        outputFile = args.output
+        
     main(nodes_set)
