@@ -298,6 +298,7 @@ if __name__ == "__main__":  # This happens if you run
     if args.dimensions:
         shared.dimensions = 3
         shared.x_domain = 0, 100
+        shared.x_range = 100
 
     shared.continual = args.screensaver
     if shared.continual:
