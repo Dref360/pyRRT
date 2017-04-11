@@ -47,7 +47,7 @@ class Timer:
         shared.method()
         self.times.append(time.time() - debut)
     def stop(self):
-        with open(outputFile, 'w') as f:
+        with open(outputFile, 'w+') as f:
             f.write(json.dumps({'algo':shared.method.__name__, 'map':inputMap, 'time':self.times}))
         exit()
         
@@ -105,6 +105,7 @@ def update(dt):
                                           0.5, 0.25, 0.0, 0.5,
                                           0.5, 0.25, 0.0, 0.5,
                                           0.5, 0.25, 0.0, 0.5)))
+            timer.stop()
         else:
             pyglet.graphics.draw(4, gl.GL_QUADS,
                                  ('v2f', (shared.window_width // 5 - 20, 24 - 10,
@@ -300,12 +301,17 @@ if __name__ == "__main__":  # This happens if you run
                         help="run fullscreen on last screen available", action="store_true")
     parser.add_argument("-o", "--output",
                         help="the name of the output file, for the test data")
-    parser.add_argument("-a", "--algorithm",
+    parser.add_argument("-a", "--algorithm", type=int,
                         help="0=rrt, 1=rrtstar, 2=rrtstarconstricted, 3=rrtstarinformed") 
     args = parser.parse_args()
+    print(args) 
+    
     shared.continual = args.screensaver
+    autoMode = True
     if shared.continual:
         shared.base_max = sys.maxsize
+    else:
+        shared.base_max = 2000
     shared.fullscreen = args.fullscreen
     if shared.fullscreen:
         shared.window_width, shared.window_height = shared.screen_width, shared.screen_height
@@ -318,7 +324,7 @@ if __name__ == "__main__":  # This happens if you run
         inputMap = args.infile
     if args.algorithm:
         shared.method = methods[int(args.algorithm)]
-        autoMode = True
+        
     if args.output:
         outputFile = args.output
         
