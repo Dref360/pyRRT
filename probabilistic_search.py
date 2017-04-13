@@ -170,12 +170,12 @@ def sample_unit_ball():
         y = rho * math.sin(phi)
         return [x, y]
     else:
-        phi = random(0, 2 * math.pi)
-        costheta = random(-1, 1)
-        u = random(0, 1)
+        phi =  random.uniform(0, 2 * math.pi)
+        costheta = random.uniform(-1, 1)
+        u = random.uniform(0, 1)
 
-        theta = math.arccos(costheta)
-        r = math.cuberoot(u)
+        theta = math.acos(costheta)
+        r = u ** (1. / 3)
 
         x = r * math.sin(theta) * math.cos(phi)
         y = r * math.sin(theta) * math.sin(phi)

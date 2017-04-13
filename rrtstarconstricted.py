@@ -31,7 +31,7 @@ def step():
     updated = updated or goal_path_resolve(shared.nodes[-1])
     if updated:
         diameter = shared.root_path_length
-        center = []
+        center = [0] * shared.dimensions
         for i in range(shared.dimensions):
             center[i] = shared.root_path[0].coords[i] + shared.root_path[-1].coords[i] / 2
         if shared.region:
@@ -52,8 +52,10 @@ def sample():
             r = shared.root_path_length / 2
             while True:
                 coords = sample_unit_ball()
-                coords *= r
-                coords += center
+                coords[0] *= r
+                coords[1] *= r
+                coords[0] += center[0]
+                coords[1] += center[1]
                 if shared.x_domain[1] > coords[0] > shared.x_domain[0] and shared.y_domain[1] > coords[1] > shared.y_domain[0]:
                     return coords
         elif shared.dimensions == 3:
@@ -64,8 +66,12 @@ def sample():
             r = shared.root_path_length / 2
             while True:
                 coords = sample_unit_ball()
-                coords *= r
-                coords += center
+                coords[0] *= r
+                coords[1] *= r
+                coords[2] *= r
+                coords[0] += center[0]
+                coords[1] += center[1]
+                coords[2] += center[2]
                 if shared.x_domain[1] > coords[0] > shared.x_domain[0] and shared.x_domain[1] > coords[1] > shared.x_domain[0] and shared.x_domain[1] > coords[2] > shared.x_domain[0]:
                     return coords
     else:
