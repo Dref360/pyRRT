@@ -40,15 +40,16 @@ def method_cycle():
 
 
 class Timer:
-    times = []
-    
+    fstStop = 0
     def run(self):
-        debut = time.time()
         shared.method()
-        self.times.append(time.time() - debut)
+    def goal(self, nodeCount):
+        if self.fstStop == 0:
+            self.fstStop = nodeCount
     def stop(self):
-        with open(outputFile, 'w+') as f:
-            f.write(json.dumps({'algo':shared.method.__name__, 'map':inputMap, 'time':self.times}))
+        if(outputFile != ""):
+            with open(outputFile, 'w+') as f:
+                f.write(json.dumps({'algo':shared.method.__name__, 'map':inputMap, 'time':shared.node_count, 'cost':shared.root_path_length, 'firstFind':self.fstStop }))
         exit()
         
         
@@ -69,7 +70,8 @@ def update(dt):
     gl.glClear(gl.GL_COLOR_BUFFER_BIT)
     gl.glLoadIdentity()
     if shared.root_path_length != sys.maxsize:
-        timer.stop()
+        shared.running = autoMode
+        timer.goal(shared.node_count)
         path_cost = pyglet.text.Label("Path Cost: %6.2f" % shared.root_path_length,
                                       font_size=18,
                                       x=shared.window_width // 3, y=24,
